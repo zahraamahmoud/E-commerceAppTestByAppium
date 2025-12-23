@@ -81,14 +81,12 @@ jobs:
                 sleep 5
             done
             echo "Emulator is ready!"
-
             echo "Starting Appium server..."
             appium &
-
             sleep 10
-
             echo "Running tests..."
             mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml || true
+          shell: bash
         env:
           USERNAME: ${{ secrets.APP_USERNAME }}
           PASSWORD: ${{ secrets.APP_PASSWORD }}
