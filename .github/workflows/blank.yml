@@ -82,47 +82,60 @@ jobs:
           disable-spellchecker: true
           emulator-boot-timeout: 900
           script: |
+            bash << 'EOF'
+            set -e
+          
             echo "=== Emulator is ready (verified by emulator-runner) ==="
             adb devices -l
             adb shell getprop ro.build.version.release
+          
             echo "=== Additional stabilization wait ==="
             sleep 10
+          
             echo "=== Starting Appium server ==="
             mkdir -p logs
             appium --log-timestamp --log ./logs/appium.log 2>&1 &
             APPIUM_PID=$!
             echo "Appium PID: $APPIUM_PID"
+          
             echo "=== Waiting for Appium to be ready ==="
             appium_ready=0
             i=0
-            while [ $i -lt 60 ]; do
-              if curl -s http://localhost:4723/status > /dev/null 2>&1; then
+          
+            while [ "$i" -lt 60 ]; do
+              if curl -s http://localhost:4723/status > /dev/null; then
                 appium_ready=1
                 echo "Appium is ready!"
                 break
               fi
               echo "Waiting for Appium... ($i/60)"
               sleep 2
-              i=$((i+1))
+              i=$((i + 1))
             done
-            if [ $appium_ready -eq 0 ]; then
+          
+            if [ "$appium_ready" -eq 0 ]; then
               echo "ERROR: Appium failed to start within timeout"
               [ -f ./logs/appium.log ] && cat ./logs/appium.log
-              kill $APPIUM_PID 2>/dev/null || true
+              kill "$APPIUM_PID" 2>/dev/null || true
               exit 1
             fi
+          
             echo "=== Appium Status ==="
             curl -s http://localhost:4723/status || echo "Status endpoint not responding"
+          
             echo "=== Running Maven tests ==="
             mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
             TEST_EXIT_CODE=$?
+          
             echo "=== Capturing logs ==="
             [ -f ./logs/appium.log ] && tail -100 ./logs/appium.log
-            adb logcat -d > ./logs/emulator-logcat.txt 2>&1 || echo "Failed to capture logcat"
+            adb logcat -d > ./logs/emulator-logcat.txt 2>&1 || true
+          
             echo "=== Stopping Appium ==="
-            kill $APPIUM_PID 2>/dev/null || true
-            echo "=== Test execution completed with exit code: $TEST_EXIT_CODE ==="
-            exit $TEST_EXIT_CODE
+            kill "$APPIUM_PID" 2>/dev/null || true
+          
+            exit "$TEST_EXIT_CODE"
+            EOF
         env:
           USERNAME: ${{ secrets.APP_USERNAME }}
           PASSWORD: ${{ secrets.APP_PASSWORD }}
