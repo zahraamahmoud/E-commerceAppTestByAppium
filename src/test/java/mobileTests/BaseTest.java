@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.DeviceRotation;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -13,7 +12,6 @@ import org.testng.annotations.BeforeClass;
 import mobile.utils.DriverManager;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Duration;
 
 public class BaseTest {
@@ -22,20 +20,29 @@ public class BaseTest {
     WebDriverWait explicitWait;
     DriverManager driverManager;
     String emuName="P7";
-    int portNo=4724;
+    int portNo=4723;
+    private String runMode = System.getProperty("RUN_MODE", "local");
 
     @BeforeClass
-    public void setup() throws IOException, InterruptedException, URISyntaxException {
+    public void setup() throws IOException, InterruptedException {
         driverManager = new DriverManager();
-        driver= driverManager.appSetupwithEmulator(portNo);
-        explicitWait=new WebDriverWait(driver, Duration.ofSeconds(4));
 
+        if (runMode.equalsIgnoreCase("remote")) {
+            driver = driverManager.appSetupRemotly(portNo);
+        } else {
+            driver = driverManager.appSetupwithEmulator(portNo);
+        }
+
+        explicitWait = new WebDriverWait(driver, Duration.ofSeconds(4));
     }
 
    @AfterClass
     public void tearDown() throws  IOException {
-       driverManager.appTearDownwithEmulator();
-
+       if (runMode.equalsIgnoreCase("remote")) {
+              driverManager.appTearDownRemotly();
+       } else {
+               driverManager.appTearDownwithEmulator();
+       }
     }
 
 

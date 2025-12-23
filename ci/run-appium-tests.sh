@@ -30,7 +30,7 @@ if ! curl -s http://127.0.0.1:4723/status >/dev/null; then
 fi
 
 echo "=== Run tests ==="
-mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
+mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml -DRUN_MODE=remote
 TEST_EXIT_CODE=$?
 
 echo "=== Capture logs ==="

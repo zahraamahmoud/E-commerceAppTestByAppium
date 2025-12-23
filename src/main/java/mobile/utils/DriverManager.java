@@ -43,6 +43,11 @@ public class DriverManager {
         setDriver(initializeDriver(buildOptions(),PortNo));
         return getDriver();
     }
+    public AndroidDriver appSetupRemotly(int PortNo) throws IOException, InterruptedException {
+
+        setDriver(initializeDriver(buildOptions(),PortNo));
+        return getDriver();
+    }
 
   public void appTearDownwithEmulator() throws IOException {
       getDriver().quit();
@@ -51,6 +56,11 @@ public class DriverManager {
       emulatorManager.killEmulator();
 
   }
+    public void appTearDownRemotly()  {
+        getDriver().quit();
+        threadLocalDriver.remove();
+
+    }
 
      AndroidDriver initializeDriver(UiAutomator2Options options, int portNumber) {
         String serverUrl="http://127.0.0.1:"+portNumber;
