@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 
 import static mobile.utils.GetPaths.appPath;
 import static mobile.utils.GetPaths.appiumJSPath;
@@ -71,7 +72,12 @@ public class DriverManager {
        // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
         //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
         //options.setCapability("chromedriverAutodownload", true);
-        options.setApp(appPath);
+         options.setApp(appPath);
+         options.setAndroidInstallTimeout(Duration.ofMinutes(3));
+         options.setUiautomator2ServerInstallTimeout(Duration.ofMinutes(3));
+         options.setUiautomator2ServerLaunchTimeout(Duration.ofMinutes(3));
+         options.setDisableWindowAnimation(true);
+         options.setIgnoreHiddenApiPolicyError(true);
        // options.setAppPackage("com.androidsample.generalstore");
         //options.setAppActivity("com.androidsample.generalstore.MainActivity");
         // options.chromedriverUseSystemExecutable();
