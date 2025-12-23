@@ -12,7 +12,7 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
   MAVEN_CACHE: maven
 
-  ANDROID_PROFILE: 'Nexus 6'
+  ANDROID_PROFILE: 'Pixel'
   ANDROID_TARGET: google_apis
   ANDROID_API_LEVEL: 30
   ANDROID_ARCH: x86_64
@@ -24,6 +24,7 @@ env:
   # App credentials stored as GitHub Secrets
   APP_USERNAME: ${{ secrets.APP_USERNAME }}
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+  GH_TOKEN: ${{ secrets.APP_PASSWORD }}
 
 defaults:
   run:
@@ -79,20 +80,28 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           force-avd-creation: true
-          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim"
+          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-load"
           script: |
+            echo "Waiting for emulator to fully boot..."
+            adb wait-for-device
+            boot_completed=""
+            until [[ "$boot_completed" =~ "1" ]]; do
+                boot_completed=$(adb shell getprop sys.boot_completed 2>&1)
+                sleep 5
+            done
+            echo "Emulator is ready!"
+
             echo "Starting Appium server..."
             appium &
 
-            # Wait until Appium server is ready
-            sleep 15
+            sleep 10
 
             echo "Running tests..."
             mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml || true
         env:
-          # Pass secrets to tests
-          USERNAME: ${{ env.APP_USERNAME }}
-          PASSWORD: ${{ env.APP_PASSWORD }}
+          # Pass app login credentials to tests
+          USERNAME: ${{ secrets.APP_USERNAME }}
+          PASSWORD: ${{ secrets.APP_PASSWORD }}
 
       # Upload Allure results
       - name: Upload Allure Results
@@ -132,14 +141,14 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v2
         env:
-          PERSONAL_TOKEN: ${{ secrets.APP_PASSWORD }}
+          PERSONAL_TOKEN: ${{ secrets.GH_TOKEN }}
           PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
 
       - name: Post reports link
         uses: Sibz/github-status-action@v1
         with:
-          authToken: ${{ secrets.APP_PASSWORD }}
+          authToken: ${{ secrets.GH_TOKEN }}
           context: 'Test report'
           state: ${{ needs.run-android-tests.outputs.maven_tests == 'success' && 'success' || 'failure' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}
