@@ -1,1 +1,6 @@
 mobile/pom/FormPage.class
+mobile/utils/ScreenShot.class
+mobile/utils/DriverManager.class
+mobile/utils/EmulatorManager.class
+mobile/utils/GetPaths.class
+mobile/utils/UIActions.class
