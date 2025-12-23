@@ -48,8 +48,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Appium and UIAutomator2 Driver
         run: |
@@ -66,9 +64,9 @@ jobs:
           path: |
             ~/.android/avd
             ~/.android/adb*
-          key: emulator-cache-${{ env.ANDROID_PROFILE }}-${{ env.ANDROID_API_LEVEL }}-${{ hashFiles('~/.android/avd/**') }}
+          key: emulator-cache-${{ env.ANDROID_PROFILE }}-${{ env.ANDROID_API_LEVEL }}
           restore-keys: |
-            emulator-cache-${{ env.ANDROID_PROFILE }}-${{ env.ANDROID_API_LEVEL }}-
+            emulator-cache-${{ env.ANDROID_PROFILE }}-
 
       - name: Run Android Emulator & Tests
         id: mvn_test
@@ -84,48 +82,48 @@ jobs:
           disable-spellchecker: true
           emulator-boot-timeout: 900
           script: |
+            #!/bin/bash
+            set -e
+            
             echo "=== Waiting for emulator to fully boot ==="
             adb wait-for-device
+            echo "Device detected, waiting for boot completion..."
             
-            # Wait for boot to complete
-            echo "Waiting for boot completion..."
             boot_completed=""
             counter=0
             max_attempts=120
             
-            until [ "$boot_completed" == "1" ]; do
-                boot_completed=$(adb shell getprop sys.boot_completed 2>&1 | tr -d '\r')
-                echo "Boot status: $boot_completed (attempt $counter/$max_attempts)"
-                
-                if [ $counter -ge $max_attempts ]; then
-                  echo "ERROR: Emulator boot timeout after $max_attempts attempts"
-                  adb devices -l
-                  exit 1
-                fi
-                
-                sleep 5
-                counter=$((counter+1))
+            while [ "$boot_completed" != "1" ]; do
+              boot_completed=$(adb shell getprop sys.boot_completed 2>&1 | tr -d '\r\n' | tr -d ' ')
+              echo "Boot status: [$boot_completed] (attempt $counter/$max_attempts)"
+              
+              if [ $counter -ge $max_attempts ]; then
+                echo "ERROR: Emulator boot timeout after $max_attempts attempts"
+                adb devices -l
+                exit 1
+              fi
+              
+              sleep 5
+              counter=$((counter+1))
             done
             
-            # Additional wait for system services to stabilize
             echo "=== Boot completed, waiting for system services ==="
             sleep 10
             
-            # Verify emulator is responsive
             echo "=== Verifying emulator status ==="
             adb devices -l
             adb shell getprop ro.build.version.release
-            adb shell pm list packages | head -5
+            adb shell pm list packages | head -5 || echo "PM command failed but continuing..."
             
             echo "=== Starting Appium server ==="
             mkdir -p logs
-            appium --log-timestamp --log ./logs/appium.log &
+            appium --log-timestamp --log ./logs/appium.log 2>&1 &
             APPIUM_PID=$!
             echo "Appium PID: $APPIUM_PID"
             
             echo "=== Waiting for Appium to be ready ==="
             appium_ready=0
-            for i in {1..60}; do
+            for i in $(seq 1 60); do
               if curl -s http://localhost:4723/status > /dev/null 2>&1; then
                 appium_ready=1
                 echo "Appium is ready!"
@@ -137,7 +135,10 @@ jobs:
             
             if [ $appium_ready -eq 0 ]; then
               echo "ERROR: Appium failed to start within timeout"
-              cat ./logs/appium.log || echo "No Appium log available"
+              if [ -f ./logs/appium.log ]; then
+                echo "=== Appium log ==="
+                cat ./logs/appium.log
+              fi
               kill $APPIUM_PID 2>/dev/null || true
               exit 1
             fi
@@ -186,6 +187,7 @@ jobs:
             ./logs/*.log
             ./logs/*.txt
           retention-days: 7
+          if-no-files-found: warn
 
   deploy-report:
     needs: run-android-tests
@@ -209,9 +211,11 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME_REMOTE }}
           path: target/allure-results
+        continue-on-error: true
 
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@master
+        if: always()
         with:
           allure_results: target/allure-results
           gh_pages: gh-pages
@@ -221,6 +225,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
+        if: always()
         with:
           github_token: ${{ secrets.APP_PASSWORD }}
           publish_branch: gh-pages
@@ -228,6 +233,7 @@ jobs:
 
       - name: Post reports link
         uses: Sibz/github-status-action@v1
+        if: always()
         with:
           authToken: ${{ secrets.APP_PASSWORD }}
           context: 'Test Report'
