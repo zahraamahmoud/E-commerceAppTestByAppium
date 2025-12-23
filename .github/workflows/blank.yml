@@ -82,48 +82,20 @@ jobs:
           disable-spellchecker: true
           emulator-boot-timeout: 900
           script: |
-            #!/bin/bash
-            set -e
-            
-            echo "=== Waiting for emulator to fully boot ==="
-            adb wait-for-device
-            echo "Device detected, waiting for boot completion..."
-            
-            boot_completed=""
-            counter=0
-            max_attempts=120
-            
-            while [ "$boot_completed" != "1" ]; do
-              boot_completed=$(adb shell getprop sys.boot_completed 2>&1 | tr -d '\r\n' | tr -d ' ')
-              echo "Boot status: [$boot_completed] (attempt $counter/$max_attempts)"
-              
-              if [ $counter -ge $max_attempts ]; then
-                echo "ERROR: Emulator boot timeout after $max_attempts attempts"
-                adb devices -l
-                exit 1
-              fi
-              
-              sleep 5
-              counter=$((counter+1))
-            done
-            
-            echo "=== Boot completed, waiting for system services ==="
-            sleep 10
-            
-            echo "=== Verifying emulator status ==="
+            echo "=== Emulator is ready (verified by emulator-runner) ==="
             adb devices -l
             adb shell getprop ro.build.version.release
-            adb shell pm list packages | head -5 || echo "PM command failed but continuing..."
-            
+            echo "=== Additional stabilization wait ==="
+            sleep 10
             echo "=== Starting Appium server ==="
             mkdir -p logs
             appium --log-timestamp --log ./logs/appium.log 2>&1 &
             APPIUM_PID=$!
             echo "Appium PID: $APPIUM_PID"
-            
             echo "=== Waiting for Appium to be ready ==="
             appium_ready=0
-            for i in $(seq 1 60); do
+            i=0
+            while [ $i -lt 60 ]; do
               if curl -s http://localhost:4723/status > /dev/null 2>&1; then
                 appium_ready=1
                 echo "Appium is ready!"
@@ -131,39 +103,24 @@ jobs:
               fi
               echo "Waiting for Appium... ($i/60)"
               sleep 2
+              i=$((i+1))
             done
-            
             if [ $appium_ready -eq 0 ]; then
               echo "ERROR: Appium failed to start within timeout"
-              if [ -f ./logs/appium.log ]; then
-                echo "=== Appium log ==="
-                cat ./logs/appium.log
-              fi
+              [ -f ./logs/appium.log ] && cat ./logs/appium.log
               kill $APPIUM_PID 2>/dev/null || true
               exit 1
             fi
-            
             echo "=== Appium Status ==="
             curl -s http://localhost:4723/status || echo "Status endpoint not responding"
-            
             echo "=== Running Maven tests ==="
-            set +e
             mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
             TEST_EXIT_CODE=$?
-            set -e
-            
             echo "=== Capturing logs ==="
-            if [ -f ./logs/appium.log ]; then
-              echo "Appium log (last 100 lines):"
-              tail -100 ./logs/appium.log
-            fi
-            
+            [ -f ./logs/appium.log ] && tail -100 ./logs/appium.log
             adb logcat -d > ./logs/emulator-logcat.txt 2>&1 || echo "Failed to capture logcat"
-            
             echo "=== Stopping Appium ==="
             kill $APPIUM_PID 2>/dev/null || true
-            wait $APPIUM_PID 2>/dev/null || true
-            
             echo "=== Test execution completed with exit code: $TEST_EXIT_CODE ==="
             exit $TEST_EXIT_CODE
         env:
@@ -227,7 +184,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:
-          github_token: ${{ secrets.APP_PASSWORD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
 
@@ -235,7 +192,7 @@ jobs:
         uses: Sibz/github-status-action@v1
         if: always()
         with:
-          authToken: ${{ secrets.APP_PASSWORD }}
+          authToken: ${{ secrets.GITHUB_TOKEN }}
           context: 'Test Report'
           state: ${{ needs.run-android-tests.outputs.maven_tests == 'success' && 'success' || 'failure' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}
