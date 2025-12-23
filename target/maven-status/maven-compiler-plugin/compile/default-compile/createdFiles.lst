@@ -1,6 +1,1 @@
-mobile\pom\FormPage.class
-mobile\utils\DriverManager.class
-mobile\utils\UIActions.class
-mobile\utils\EmulatorManager.class
-mobile\utils\ScreenShot.class
-mobile\utils\GetPaths.class
+mobile/pom/FormPage.class

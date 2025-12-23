@@ -17,12 +17,12 @@ import static mobile.utils.GetPaths.appiumJSPath;
 public class DriverManager {
 
 
-    private static ThreadLocal<AndroidDriver> threadLocalDriver = new ThreadLocal<>();
+    private static final ThreadLocal<AndroidDriver> threadLocalDriver = new ThreadLocal<>();
     AppiumDriverLocalService service;
 
     EmulatorManager emulatorManager;
     public  DriverManager() throws IOException {
-        emulatorManager=new EmulatorManager();
+        emulatorManager=new EmulatorManager(null ,null);
     }
 
 
@@ -34,12 +34,12 @@ public class DriverManager {
         threadLocalDriver.set(driver);
     }
 
-    public AndroidDriver appSetupwithEmulator(String emuName,int PortNo) throws IOException, InterruptedException {
+    public AndroidDriver appSetupwithEmulator(int PortNo) throws IOException, InterruptedException {
 
-        emulatorManager.startEmulator(emuName);
+        emulatorManager.startEmulator();
         service= appiumServerService(PortNo);
         service.start();
-        setDriver(initializeDriver(buildOptions(emuName),PortNo));
+        setDriver(initializeDriver(buildOptions(),PortNo));
         return getDriver();
     }
 
@@ -47,7 +47,7 @@ public class DriverManager {
       getDriver().quit();
       threadLocalDriver.remove();
       service.stop();
-      emulatorManager.stopEmulator();
+      emulatorManager.killEmulator();
 
   }
 
@@ -65,13 +65,12 @@ public class DriverManager {
 
 
 
-     UiAutomator2Options buildOptions(String avdName){
+     UiAutomator2Options buildOptions(){
         UiAutomator2Options   options = new UiAutomator2Options();
         //   WebDriverManager.chromedriver().setup();
        // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
         //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
         //options.setCapability("chromedriverAutodownload", true);
-        options.setDeviceName(avdName);
         options.setApp(appPath);
        // options.setAppPackage("com.androidsample.generalstore");
         //options.setAppActivity("com.androidsample.generalstore.MainActivity");
@@ -80,15 +79,14 @@ public class DriverManager {
         return options;
     }
 
-     AppiumDriverLocalService appiumServerService(int portNumber)  {
-        AppiumDriverLocalService service;
-        service = AppiumDriverLocalService.buildService(new AppiumServiceBuilder()
-                .usingDriverExecutable(new File("C:\\Program Files\\nodejs\\node.exe"))
-                .withAppiumJS(new File(System.getProperty("appiumPath", appiumJSPath)))
-                .withIPAddress("127.0.0.1").usingPort(portNumber));
+    AppiumDriverLocalService appiumServerService(int portNumber) {
 
+        AppiumServiceBuilder builder = new AppiumServiceBuilder()
+                .withIPAddress("127.0.0.1")
+                .usingPort(portNumber);
 
-        return service;
+        return AppiumDriverLocalService.buildService(builder);
     }
+
 
 }

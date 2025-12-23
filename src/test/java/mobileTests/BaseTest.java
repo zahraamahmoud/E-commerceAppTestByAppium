@@ -27,7 +27,7 @@ public class BaseTest {
     @BeforeClass
     public void setup() throws IOException, InterruptedException, URISyntaxException {
         driverManager = new DriverManager();
-        driver= driverManager.appSetupwithEmulator(System.getProperty("deviceName", emuName),portNo);
+        driver= driverManager.appSetupwithEmulator(portNo);
         explicitWait=new WebDriverWait(driver, Duration.ofSeconds(4));
 
     }
@@ -41,7 +41,7 @@ public class BaseTest {
 
 
     public void dragAndDrop(WebElement element, int endX, int endY){
-        ((JavascriptExecutor) driver).executeScript("mobile: dragGesture", ImmutableMap.of(
+        driver.executeScript("mobile: dragGesture", ImmutableMap.of(
                 "elementId", ((RemoteWebElement) element).getId(),
                 "endX", endX,
                 "endY", endY
@@ -49,7 +49,7 @@ public class BaseTest {
     }
 
     public void longPress(WebElement element){
-        ((JavascriptExecutor) driver).executeScript("mobile: longClickGesture", ImmutableMap.of(
+        driver.executeScript("mobile: longClickGesture", ImmutableMap.of(
                 "elementId", ((RemoteWebElement) element).getId(),
                 "duration",1000
 
@@ -60,14 +60,14 @@ public class BaseTest {
 
         boolean canScrollMore;
         do {
-            canScrollMore = (Boolean) ((JavascriptExecutor) driver).executeScript("mobile: scrollGesture", ImmutableMap.of("left", 100,
+            canScrollMore = (Boolean) driver.executeScript("mobile: scrollGesture", ImmutableMap.of("left", 100,
                     "top", 200, "width", 200, "height", 200, "direction", "down", "percent", 4.0));
         }while(canScrollMore );
 
     }
 
     public void swipeTo(WebElement element,String direction){
-        ((JavascriptExecutor)driver).executeScript("mobile: swipeGesture",ImmutableMap.of("elementId",((RemoteWebElement)element).getId(),
+        driver.executeScript("mobile: swipeGesture",ImmutableMap.of("elementId",((RemoteWebElement)element).getId(),
                 "direction",direction,
                 "percent",.1));
     }

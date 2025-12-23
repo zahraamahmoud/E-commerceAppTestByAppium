@@ -16,7 +16,7 @@ public class ScreenShot {
 
 
     public static String captureScreenshot(AndroidDriver driver, String screenshotName) {
-        TakesScreenshot ts = (TakesScreenshot) driver;
+        TakesScreenshot ts = driver;
         File source = ts.getScreenshotAs(OutputType.FILE);
         String timestamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
         String screenshotPath="test-output/mobilescreenshots/" + screenshotName + timestamp + ".png";

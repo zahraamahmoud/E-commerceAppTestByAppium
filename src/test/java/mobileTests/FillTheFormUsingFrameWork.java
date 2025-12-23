@@ -25,7 +25,7 @@ public class FillTheFormUsingFrameWork extends BaseTest {
     public void fillTheFormTest() throws IOException {
         formPage=new FormPage();
         formPage.selectCountry(country);
-        assertEquals(formPage.getSelectedCountry(),"country");
+        assertEquals(formPage.getSelectedCountry(),"Egypt");
         formPage.setName(name);
         assertEquals(formPage.getName(),name);
 

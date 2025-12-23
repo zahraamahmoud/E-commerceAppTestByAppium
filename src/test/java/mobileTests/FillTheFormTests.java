@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -58,7 +59,7 @@ Double pricesum=0.0;
     }
     @Test(priority = 2)
    public  void addItemToCartTest(){
-        ((JavascriptExecutor)driver).executeScript("mobile: startActivity",
+        driver.executeScript("mobile: startActivity",
                 ImmutableMap.of("intent","com.androidsample.generalstore/com.androidsample.generalstore.AllProductsActivity"));
         WebElement addToCartbtn=driver.findElement(By.xpath("//android.widget.TextView[contains(@text,'"+productName+"')]/following-sibling::android.widget.LinearLayout/android.widget.TextView[@resource-id='com.androidsample.generalstore:id/productAddCart']"));
        addToCartbtn.click();
@@ -67,7 +68,7 @@ Double pricesum=0.0;
 }
       @Test
     public  void addTwoItemsToCartTest() throws InterruptedException {
-        ((JavascriptExecutor)driver).executeScript("mobile: startActivity",
+        driver.executeScript("mobile: startActivity",
                 ImmutableMap.of("intent","com.androidsample.generalstore/com.androidsample.generalstore.AllProductsActivity"));
         WebElement addToCartbtn=driver.findElement(By.xpath("//android.widget.TextView[contains(@text,'"+productName+"')]/following-sibling::android.widget.LinearLayout/android.widget.TextView[@resource-id='com.androidsample.generalstore:id/productAddCart']"));
         addToCartbtn.click();
@@ -90,7 +91,7 @@ Double pricesum=0.0;
           touchAction.addAction(touchInput.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
 
 // Perform the action
-          driver.perform(Arrays.asList(touchAction));
+          driver.perform(List.of(touchAction));
 
 
 

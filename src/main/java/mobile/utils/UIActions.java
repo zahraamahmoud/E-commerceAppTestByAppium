@@ -134,6 +134,6 @@ public class UIActions {
         return explicitWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
     private Object executeMobileGesture(String script, Map<String, Object> args) {
-        return ((JavascriptExecutor) driver).executeScript(script, args);
+        return driver.executeScript(script, args);
     }
 }

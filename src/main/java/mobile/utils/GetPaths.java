@@ -27,7 +27,13 @@ public class GetPaths {
             adbPath = properties.getProperty("adbPath").replace("<username>", user);
             emulatorPath = properties.getProperty("emulatorPath").replace("<username>", user);
             appiumJSPath = properties.getProperty("appiumJSPath").replace("<username>", user);
-            appPath=properties.getProperty("appPath").replace("<userdir>", System.getProperty("user.dir"));
+            appPath= System.getProperty("user.dir")
+                            + File.separator + "src"
+                            + File.separator + "test"
+                            + File.separator + "resources"
+                            + File.separator + "Utils"
+                            + File.separator + "General-Store.apk";
+
         }
     }
 }
