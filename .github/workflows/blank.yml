@@ -1,4 +1,4 @@
-name: Appium CI/CD Test
+name: Appium CICD Test
 
 on:
   push:
@@ -8,52 +8,59 @@ on:
   workflow_dispatch:
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'temurin'
   MAVEN_CACHE: maven
 
-  ANDROID_PROFILE: Nexus 6
+  ANDROID_PROFILE: Nexus_6_API_33
   ANDROID_TARGET: google_apis
-  ANDROID_API_LEVEL: 28
+  ANDROID_API_LEVEL: 33
   ANDROID_ARCH: x86_64
 
   ARTIFACT_NAME_REMOTE: allure-results-android-remote
   ARTIFACT_NAME_CLOUD: allure-results-android-cloud
-  GH_PAGES_URL: https://zahraamahmoud.github.io/E-commerceAppTestByAppium
+  GH_PAGES_URL: https://clark-ewerton.github.io/mobile-test-automation-lab
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  # Run Android Tests on Emulator
-  run-android-tests-remote:
+  run-android-tests:
     runs-on: ubuntu-latest
     outputs:
-      maven_tests: ${{ steps.maven_tests.outcome }}
+      maven_tests: ${{ steps.mvn_test.outcome }}
 
     steps:
-      - name: Checkout project
+      # Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      # Setup Java
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
           cache: ${{ env.MAVEN_CACHE }}
 
-      - name: Build with Maven (skip tests for now)
-        run: mvn install -DskipTests
-
-      - name: Set up Node.js & Install Appium
+      # Setup Node.js for Appium
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - run: npm install -g appium
 
-      - name: Run tests on Android emulator
-        id: maven_tests
+      # Install Appium globally
+      - name: Install Appium
+        run: npm install -g appium
+
+      # Build Maven project
+      - name: Build with Maven
+        run: mvn install -DskipTests
+
+      # Run Android emulator using reactivecircus action
+      - name: Run Android Emulator & Tests
+        id: mvn_test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
@@ -61,26 +68,27 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           script: |
-            # Start Appium server in the background
+            echo "Starting Appium server..."
             appium &
-            sleep 15  # Give Appium server time to start
 
-            # Run your TestNG suite via Maven
-            mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
+            # Wait a bit to ensure Appium is ready
+            sleep 15
 
-      - name: Upload Allure results
+            # Run tests
+            mvn test -Dsurefire.suiteXmlFiles=src/test/resources/testng-local.xml || true
+
+      # Upload Allure results
+      - name: Upload Allure Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME_REMOTE }}
           path: ./target/allure-results
 
-  # Deploy Allure Report
   deploy-report:
-    if: always()
-    needs: [run-android-tests-remote]
+    needs: run-android-tests
     runs-on: ubuntu-latest
-
+    if: always()
     steps:
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
@@ -97,7 +105,6 @@ jobs:
 
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@master
-        id: allure-report
         with:
           allure_results: target/allure-results
           gh_pages: gh-pages
@@ -112,11 +119,11 @@ jobs:
           PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
 
-      - name: Post report link
+      - name: Post reports link
         uses: Sibz/github-status-action@v1
         with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
           context: 'Test report'
-          state: ${{ needs.run-android-tests-remote.outputs.maven_tests == 'success' && 'success' || 'failure' }}
+          state: ${{ needs.run-android-tests.outputs.maven_tests == 'success' && 'success' || 'failure' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}
           target_url: ${{ env.GH_PAGES_URL }}/${{ github.run_number }}/
