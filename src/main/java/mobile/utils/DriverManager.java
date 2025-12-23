@@ -1,0 +1,94 @@
+package mobile.utils;
+
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static mobile.utils.GetPaths.appPath;
+import static mobile.utils.GetPaths.appiumJSPath;
+
+public class DriverManager {
+
+
+    private static ThreadLocal<AndroidDriver> threadLocalDriver = new ThreadLocal<>();
+    AppiumDriverLocalService service;
+
+    EmulatorManager emulatorManager;
+    public  DriverManager() throws IOException {
+        emulatorManager=new EmulatorManager();
+    }
+
+
+    public AndroidDriver getDriver() {
+        return threadLocalDriver.get();
+    }
+
+    public void setDriver(AndroidDriver driver) {
+        threadLocalDriver.set(driver);
+    }
+
+    public AndroidDriver appSetupwithEmulator(String emuName,int PortNo) throws IOException, InterruptedException {
+
+        emulatorManager.startEmulator(emuName);
+        service= appiumServerService(PortNo);
+        service.start();
+        setDriver(initializeDriver(buildOptions(emuName),PortNo));
+        return getDriver();
+    }
+
+  public void appTearDownwithEmulator() throws IOException {
+      getDriver().quit();
+      threadLocalDriver.remove();
+      service.stop();
+      emulatorManager.stopEmulator();
+
+  }
+
+     AndroidDriver initializeDriver(UiAutomator2Options options, int portNumber) {
+        String serverUrl="http://127.0.0.1:"+portNumber;
+         System.out.println(serverUrl);
+
+
+        try {
+            return new AndroidDriver(new URI(serverUrl).toURL(), options);
+        }  catch (URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException("Invalid Appium server URL: " + serverUrl, e);
+        }
+    }
+
+
+
+     UiAutomator2Options buildOptions(String avdName){
+        UiAutomator2Options   options = new UiAutomator2Options();
+        //   WebDriverManager.chromedriver().setup();
+       // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
+        //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
+        //options.setCapability("chromedriverAutodownload", true);
+        options.setDeviceName(avdName);
+        options.setApp(appPath);
+       // options.setAppPackage("com.androidsample.generalstore");
+        //options.setAppActivity("com.androidsample.generalstore.MainActivity");
+        // options.chromedriverUseSystemExecutable();
+
+        return options;
+    }
+
+     AppiumDriverLocalService appiumServerService(int portNumber)  {
+        AppiumDriverLocalService service;
+        service = AppiumDriverLocalService.buildService(new AppiumServiceBuilder()
+                .usingDriverExecutable(new File("C:\\Program Files\\nodejs\\node.exe"))
+                .withAppiumJS(new File(System.getProperty("appiumPath", appiumJSPath)))
+                .withIPAddress("127.0.0.1").usingPort(portNumber));
+
+
+        return service;
+    }
+
+}
