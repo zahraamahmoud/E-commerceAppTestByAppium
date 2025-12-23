@@ -40,6 +40,12 @@ jobs:
           build-tools: '33.0.2'
           target: android-33
           emulator: true
+      - name: Create Android emulator
+        run: |
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            -n test \
+            -k "system-images;android-33;google_apis;x86_64" \
+            --force
 
       # 6. Start Android emulator
       - name: Start Android emulator
