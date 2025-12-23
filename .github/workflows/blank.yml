@@ -12,14 +12,18 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
   MAVEN_CACHE: maven
 
-  ANDROID_PROFILE: 'Nexus 6'
+  ANDROID_PROFILE: 'Nexus_6'
   ANDROID_TARGET: google_apis
   ANDROID_API_LEVEL: 33
   ANDROID_ARCH: x86_64
 
   ARTIFACT_NAME_REMOTE: allure-results-android-remote
   ARTIFACT_NAME_CLOUD: allure-results-android-cloud
-  GH_PAGES_URL: https://clark-ewerton.github.io/mobile-test-automation-lab
+  GH_PAGES_URL: https://github.com/zahraamahmoud/E-commerceAppTestByAppium
+
+  # App credentials stored as GitHub Secrets
+  APP_USERNAME: ${{ secrets.APP_USERNAME }}
+  APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
 
 defaults:
   run:
@@ -32,7 +36,7 @@ jobs:
       maven_tests: ${{ steps.mvn_test.outcome }}
 
     steps:
-      # Checkout
+      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -54,11 +58,18 @@ jobs:
       - name: Install Appium
         run: npm install -g appium
 
-      # Build Maven project
+      # Build Maven project without tests
       - name: Build with Maven
         run: mvn install -DskipTests
 
-      # Run Android emulator using reactivecircus action
+      # Cache Android Emulator to speed up boot
+      - name: Cache AVD
+        uses: actions/cache@v3
+        with:
+          path: ~/.android/avd
+          key: emulator-cache-${{ env.ANDROID_PROFILE }}-${{ env.ANDROID_API_LEVEL }}
+
+      # Run Android Emulator & Tests
       - name: Run Android Emulator & Tests
         id: mvn_test
         uses: reactivecircus/android-emulator-runner@v2
@@ -67,15 +78,21 @@ jobs:
           target: ${{ env.ANDROID_TARGET }}
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
+          force-avd-creation: true
+          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim"
           script: |
             echo "Starting Appium server..."
             appium &
 
-            # Wait a bit to ensure Appium is ready
+            # Wait until Appium server is ready
             sleep 15
 
-            # Run tests
-            mvn test -Dsurefire.suiteXmlFiles || true
+            echo "Running tests..."
+            mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml || true
+        env:
+          # Pass secrets to tests
+          USERNAME: ${{ env.APP_USERNAME }}
+          PASSWORD: ${{ env.APP_PASSWORD }}
 
       # Upload Allure results
       - name: Upload Allure Results
@@ -115,14 +132,14 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v2
         env:
-          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERSONAL_TOKEN: ${{ secrets.APP_PASSWORD }}
           PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
 
       - name: Post reports link
         uses: Sibz/github-status-action@v1
         with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
+          authToken: ${{ secrets.APP_PASSWORD }}
           context: 'Test report'
           state: ${{ needs.run-android-tests.outputs.maven_tests == 'success' && 'success' || 'failure' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}
