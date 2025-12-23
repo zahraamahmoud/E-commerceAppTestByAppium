@@ -7,22 +7,33 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+  MAVEN_CACHE: maven
+  ANDROID_PROFILE: Nexus 6
+  ANDROID_TARGET: google_apis
+  ANDROID_API_LEVEL: 33
+  ANDROID_ARCH: x86_64
+  ARTIFACT_NAME: allure-results-android
+
 jobs:
   android-tests:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the code
+      # 1. Checkout code
       - uses: actions/checkout@v4
 
-      # 2. Set up Java (for Maven & Appium)
+      # 2. Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: '17'
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: ${{ env.MAVEN_CACHE }}
 
-      # 3. Set up Node.js (for Appium server)
+      # 3. Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -32,33 +43,26 @@ jobs:
       - name: Install Appium
         run: npm install -g appium
 
-      # 5. Set up Android SDK and emulator
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+      # 5. Run tests on Android emulator using reactivecircus runner
+      - name: Run Maven Appium tests on Emulator
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
-          build-tools: '33.0.2'
-          target: android-33
-          emulator: true
-      - name: Create Android emulator
-        run: |
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-            -n test \
-            -k "system-images;android-33;google_apis;x86_64" \
-            --force
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          target: ${{ env.ANDROID_TARGET }}
+          arch: ${{ env.ANDROID_ARCH }}
+          profile: ${{ env.ANDROID_PROFILE }}
+          script: |
+            # Start Appium server in background
+            appium &
+            sleep 10  # wait for server to start
 
-      # 6. Start Android emulator
-      - name: Start Android emulator
-        run: |
-          echo "Starting emulator..."
-          $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window &
-          adb wait-for-device
-          adb shell input keyevent 82
+            # Run Maven tests
+            mvn clean test
 
-      # 7. Start Appium server in the background
-      - name: Start Appium server
-        run: appium &
-
-      # 8. Build project and run Maven Appium tests
-      - name: Run Maven tests
-        run: mvn clean test
+      # 6. Upload Allure results
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ./target/allure-results
