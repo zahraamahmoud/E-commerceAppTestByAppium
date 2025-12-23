@@ -81,8 +81,8 @@ jobs:
           disable-animations: true
           disable-spellchecker: true
           emulator-boot-timeout: 900
-          script: |
-            bash << 'EOF'
+          script:  |
+            bash -c '
             set -e
           
             echo "=== Emulator is ready (verified by emulator-runner) ==="
@@ -103,9 +103,9 @@ jobs:
             i=0
           
             while [ "$i" -lt 60 ]; do
-              if curl -s http://localhost:4723/status > /dev/null; then
-                appium_ready=1
+              if curl -s http://localhost:4723/status >/dev/null; then
                 echo "Appium is ready!"
+                appium_ready=1
                 break
               fi
               echo "Waiting for Appium... ($i/60)"
@@ -115,27 +115,25 @@ jobs:
           
             if [ "$appium_ready" -eq 0 ]; then
               echo "ERROR: Appium failed to start within timeout"
-              [ -f ./logs/appium.log ] && cat ./logs/appium.log
-              kill "$APPIUM_PID" 2>/dev/null || true
+              cat logs/appium.log || true
+              kill "$APPIUM_PID" || true
               exit 1
             fi
-          
-            echo "=== Appium Status ==="
-            curl -s http://localhost:4723/status || echo "Status endpoint not responding"
           
             echo "=== Running Maven tests ==="
             mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
             TEST_EXIT_CODE=$?
           
             echo "=== Capturing logs ==="
-            [ -f ./logs/appium.log ] && tail -100 ./logs/appium.log
-            adb logcat -d > ./logs/emulator-logcat.txt 2>&1 || true
+            tail -100 logs/appium.log || true
+            adb logcat -d > logs/emulator-logcat.txt || true
           
             echo "=== Stopping Appium ==="
-            kill "$APPIUM_PID" 2>/dev/null || true
+            kill "$APPIUM_PID" || true
           
             exit "$TEST_EXIT_CODE"
-            EOF
+            '
+            
         env:
           USERNAME: ${{ secrets.APP_USERNAME }}
           PASSWORD: ${{ secrets.APP_PASSWORD }}
