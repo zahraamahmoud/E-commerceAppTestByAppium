@@ -1,4 +1,4 @@
-name: CI-Appium-Maven
+name: Appium CI/CD Test
 
 on:
   push:
@@ -11,40 +11,49 @@ env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'temurin'
   MAVEN_CACHE: maven
+
   ANDROID_PROFILE: Nexus 6
   ANDROID_TARGET: google_apis
-  ANDROID_API_LEVEL: 33
+  ANDROID_API_LEVEL: 28
   ANDROID_ARCH: x86_64
-  ARTIFACT_NAME: allure-results-android
+
+  ARTIFACT_NAME_REMOTE: allure-results-android-remote
+  ARTIFACT_NAME_CLOUD: allure-results-android-cloud
+  GH_PAGES_URL: https://zahraamahmoud.github.io/E-commerceAppTestByAppium
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  android-tests:
+  # Run Android Tests on Emulator
+  run-android-tests-remote:
     runs-on: ubuntu-latest
+    outputs:
+      maven_tests: ${{ steps.maven_tests.outcome }}
 
     steps:
-      # 1. Checkout code
-      - uses: actions/checkout@v4
+      - name: Checkout project
+        uses: actions/checkout@v4
 
-      # 2. Set up Java
-      - name: Set up Java
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
           cache: ${{ env.MAVEN_CACHE }}
 
-      # 3. Set up Node.js
-      - name: Set up Node.js
+      - name: Build with Maven (skip tests for now)
+        run: mvn install -DskipTests
+
+      - name: Set up Node.js & Install Appium
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+      - run: npm install -g appium
 
-      # 4. Install Appium globally
-      - name: Install Appium
-        run: npm install -g appium
-
-      # 5. Run tests on Android emulator using reactivecircus runner
-      - name: Run Maven Appium tests on Emulator
+      - name: Run tests on Android emulator
+        id: maven_tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
@@ -52,17 +61,62 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           script: |
-            # Start Appium server in background
+            # Start Appium server in the background
             appium &
-            sleep 10  # wait for server to start
+            sleep 15  # Give Appium server time to start
 
-            # Run Maven tests
-            mvn clean test
+            # Run your TestNG suite via Maven
+            mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml
 
-      # 6. Upload Allure results
       - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: ${{ env.ARTIFACT_NAME_REMOTE }}
           path: ./target/allure-results
+
+  # Deploy Allure Report
+  deploy-report:
+    if: always()
+    needs: [run-android-tests-remote]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Download Allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME_REMOTE }}
+          path: target/allure-results
+
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@master
+        id: allure-report
+        with:
+          allure_results: target/allure-results
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
+
+      - name: Post report link
+        uses: Sibz/github-status-action@v1
+        with:
+          authToken: ${{ secrets.GITHUB_TOKEN }}
+          context: 'Test report'
+          state: ${{ needs.run-android-tests-remote.outputs.maven_tests == 'success' && 'success' || 'failure' }}
+          sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          target_url: ${{ env.GH_PAGES_URL }}/${{ github.run_number }}/
