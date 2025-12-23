@@ -75,7 +75,7 @@ jobs:
             sleep 15
 
             # Run tests
-            mvn test -Dsurefire.suiteXmlFiles=src/test/resources/testng-local.xml || true
+            mvn test -Dsurefire.suiteXmlFiles || true
 
       # Upload Allure results
       - name: Upload Allure Results
