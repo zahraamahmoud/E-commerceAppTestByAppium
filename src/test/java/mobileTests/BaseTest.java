@@ -28,6 +28,7 @@ public class BaseTest {
         driverManager = new DriverManager();
 
         if (runMode.equalsIgnoreCase("remote")) {
+            driverManager.installAppiumSettingsIfNeeded("emulator-5554");
             driver = driverManager.appSetupRemotly(portNo);
         } else {
             driver = driverManager.appSetupwithEmulator(portNo);

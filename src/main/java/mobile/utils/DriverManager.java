@@ -104,5 +104,24 @@ public class DriverManager {
         return AppiumDriverLocalService.buildService(builder);
     }
 
+    public void installAppiumSettingsIfNeeded(String deviceId) throws IOException, InterruptedException {
+        // تحقق إذا الـ APK مثبت
+        Process checkPackage = Runtime.getRuntime().exec(
+                "adb -s " + deviceId + " shell dumpsys package io.appium.settings"
+        );
+        int exitCode = checkPackage.waitFor();
 
+        if (exitCode != 0) {
+            System.out.println("Appium settings APK not found. Installing...");
+            // تثبيت الـ APK
+            Process installAPK = Runtime.getRuntime().exec(
+                    "adb -s " + deviceId + " install -g " +
+                            System.getProperty("user.home") + "/.appium/node_modules/appium-uiautomator2-driver/node_modules/io.appium.settings/apks/settings_apk-debug.apk"
+            );
+            installAPK.waitFor();
+            System.out.println("Appium settings APK installed successfully!");
+        } else {
+            System.out.println("Appium settings APK already installed.");
+        }
+    }
 }
