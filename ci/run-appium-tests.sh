@@ -10,26 +10,55 @@ adb wait-for-device
 sleep 30
 
 # Ensure emulator is fully booted
-until adb shell getprop sys.boot_completed | grep -q 1; do
-  echo "Waiting for emulator to finish booting..."
-  sleep 5
+BOOT_TIMEOUT=300
+ELAPSED=0
+until adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; do
+  if [ $ELAPSED -ge $BOOT_TIMEOUT ]; then
+    echo "ERROR: Emulator boot timeout after ${BOOT_TIMEOUT}s"
+    exit 1
+  fi
+  echo "Waiting for emulator to finish booting... (${ELAPSED}s)"
+  sleep 10
+  ELAPSED=$((ELAPSED + 10))
 done
 echo "Emulator boot completed!"
 
+# Wait for package manager to be ready
+echo "Waiting for package manager..."
+until adb shell pm list packages >/dev/null 2>&1; do
+  echo "Package manager not ready yet..."
+  sleep 5
+done
+echo "Package manager ready!"
+
 # Give extra time for system services
-sleep 15
+sleep 20
+
+# Verify emulator is stable
+echo "Verifying emulator stability..."
+adb devices
+adb shell getprop ro.build.version.sdk
 
 echo "=== Start Appium with increased timeouts ==="
 mkdir -p logs
+
+# Kill any existing Appium processes
+pkill -f appium || true
+sleep 2
+
 appium --log-timestamp \
   --log ./logs/appium.log \
   --relaxed-security \
+  --session-override \
   --default-capabilities '{
-    "appium:newCommandTimeout": 300,
+    "appium:newCommandTimeout": 600,
     "appium:adbExecTimeout": 300000,
     "appium:androidInstallTimeout": 300000,
     "appium:uiautomator2ServerInstallTimeout": 300000,
-    "appium:uiautomator2ServerLaunchTimeout": 300000
+    "appium:uiautomator2ServerLaunchTimeout": 300000,
+    "appium:uiautomator2ServerReadTimeout": 300000,
+    "appium:skipServerInstallation": false,
+    "appium:skipDeviceInitialization": false
   }' &
 APPIUM_PID=$!
 echo "Appium PID: $APPIUM_PID"
