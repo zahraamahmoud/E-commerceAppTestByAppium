@@ -77,7 +77,7 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           force-avd-creation: false
-          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -memory 2048 -no-metrics"
+          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -memory 4096 -cores 2 -no-metrics -partition-size 2048"
           disable-animations: true
           disable-spellchecker: true
           emulator-boot-timeout: 900
