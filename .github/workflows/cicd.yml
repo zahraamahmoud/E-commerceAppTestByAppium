@@ -1,4 +1,4 @@
-name: Appium CICD Test
+name: Appium CI/CD Test
 
 on: [push, pull_request]
 
@@ -93,8 +93,8 @@ jobs:
       - name: Checkout reports branch
         uses: actions/checkout@v4
         with:
-          ref: gh-pages
-          path: gh-pages
+          ref: reports
+          path: reports
         continue-on-error: true
 
       - name: Download artifacts - Emulator
@@ -102,7 +102,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME_REMOTE }}
-          path: target/allure-results
+          path: allure-results
 
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@master
