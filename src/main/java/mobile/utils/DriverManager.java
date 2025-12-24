@@ -83,13 +83,20 @@ public class DriverManager {
         //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
         //options.setCapability("chromedriverAutodownload", true);
          options.setApp(appPath);
-         options.setAndroidInstallTimeout(Duration.ofMinutes(3));
-         options.setUiautomator2ServerInstallTimeout(Duration.ofMinutes(3));
-         options.setUiautomator2ServerLaunchTimeout(Duration.ofMinutes(3));
-         options.setDisableWindowAnimation(true);
+         options.setNewCommandTimeout(Duration.ofSeconds(600));
+         options.setAdbExecTimeout(Duration.ofMillis(300000));
+         options.setAndroidInstallTimeout(Duration.ofMillis(300000));
+         options.setUiautomator2ServerInstallTimeout(Duration.ofMillis(300000));
+         options.setUiautomator2ServerLaunchTimeout(Duration.ofMillis(300000));
+         options.setUiautomator2ServerReadTimeout(Duration.ofMillis(300000));
+
+        // Stability options
          options.setIgnoreHiddenApiPolicyError(true);
-       // options.setAppPackage("com.androidsample.generalstore");
-        //options.setAppActivity("com.androidsample.generalstore.MainActivity");
+         options.setDisableWindowAnimation(true);
+         options.setSkipServerInstallation(false);
+         options.setSkipDeviceInitialization(false);
+         options.setAppPackage("com.androidsample.generalstore");
+         options.setAppActivity("com.androidsample.generalstore.MainActivity");
         // options.chromedriverUseSystemExecutable();
 
         return options;
