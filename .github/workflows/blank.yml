@@ -13,7 +13,6 @@ env:
   ANDROID_ARCH: x86_64
 
   ARTIFACT_NAME_REMOTE: allure-results-android-remote
-  ARTIFACT_NAME_CLOUD: allure-results-android-cloud
   GH_PAGES_URL: https://github.com/zahraamahmoud/E-commerceAppTestByAppium.git
 
 defaults:
@@ -63,9 +62,7 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           script: |
-            chmod +x ./ci/start_emulator.sh
-            ./ci/start_emulator.sh
-
+            adb devices
             chmod +x ./ci/uploadAPK.sh
             ./ci/uploadAPK.sh
 
@@ -74,8 +71,7 @@ jobs:
             echo "Closing connection with emulator-5554"
             adb -s emulator-5554 emu kill || true
 
-            echo "Closing connection with emulator-5556"
-            adb -s emulator-5556 emu kill || true
+          
 
       - name: Upload results (emulador)
         if: always()
