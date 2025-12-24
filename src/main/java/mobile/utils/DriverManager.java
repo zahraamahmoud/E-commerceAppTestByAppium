@@ -82,7 +82,7 @@ public class DriverManager {
        // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
         //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
         //options.setCapability("chromedriverAutodownload", true);
-         options.setApp(appPath);
+        // options.setApp(appPath);
          options.setNewCommandTimeout(Duration.ofSeconds(600));
          options.setAdbExecTimeout(Duration.ofMillis(300000));
          options.setAndroidInstallTimeout(Duration.ofMillis(300000));
