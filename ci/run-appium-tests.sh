@@ -46,37 +46,55 @@ mkdir -p logs
 pkill -f appium || true
 sleep 2
 
-appium --log-timestamp \
+# Start Appium with simplified configuration
+# Note: Multi-line JSON in bash can be tricky, using inline format instead
+appium \
+  --log-timestamp \
   --log ./logs/appium.log \
   --relaxed-security \
   --session-override \
-  --default-capabilities '{
-    "appium:newCommandTimeout": 600,
-    "appium:adbExecTimeout": 300000,
-    "appium:androidInstallTimeout": 300000,
-    "appium:uiautomator2ServerInstallTimeout": 300000,
-    "appium:uiautomator2ServerLaunchTimeout": 300000,
-    "appium:uiautomator2ServerReadTimeout": 300000,
-    "appium:skipServerInstallation": false,
-    "appium:skipDeviceInitialization": false
-  }' &
+  --allow-insecure chromedriver_autodownload \
+  --default-capabilities '{"appium:newCommandTimeout":600,"appium:adbExecTimeout":300000,"appium:androidInstallTimeout":300000,"appium:uiautomator2ServerInstallTimeout":300000,"appium:uiautomator2ServerLaunchTimeout":300000}' &
+
 APPIUM_PID=$!
 echo "Appium PID: $APPIUM_PID"
 
+# Verify Appium process is running
+sleep 5
+if ! ps -p $APPIUM_PID > /dev/null 2>&1; then
+  echo "ERROR: Appium process died immediately after starting"
+  echo "Last 50 lines of Appium log:"
+  tail -50 logs/appium.log || echo "No log file found"
+  exit 1
+fi
+
 echo "=== Wait for Appium ==="
-for i in {1..30}; do
-  if curl -s http://127.0.0.1:4723/status >/dev/null; then
+APPIUM_READY=false
+for i in {1..60}; do
+  if curl -s http://127.0.0.1:4723/status >/dev/null 2>&1; then
     echo "Appium is ready!"
+    APPIUM_READY=true
     break
   fi
-  echo "Attempt $i/30: Waiting for Appium..."
+  echo "Attempt $i/60: Waiting for Appium..."
   sleep 2
+  
+  # Check if Appium process is still running
+  if ! ps -p $APPIUM_PID > /dev/null 2>&1; then
+    echo "ERROR: Appium process died while waiting for it to be ready"
+    echo "Last 50 lines of Appium log:"
+    tail -50 logs/appium.log || echo "No log file found"
+    exit 1
+  fi
 done
 
-if ! curl -s http://127.0.0.1:4723/status >/dev/null; then
-  echo "ERROR: Appium did not start"
-  cat logs/appium.log || true
-  kill "$APPIUM_PID" || true
+if [ "$APPIUM_READY" = false ]; then
+  echo "ERROR: Appium did not start within 120 seconds"
+  echo "Appium process status:"
+  ps -p $APPIUM_PID || echo "Process not found"
+  echo "Last 100 lines of Appium log:"
+  tail -100 logs/appium.log || echo "No log file found"
+  kill "$APPIUM_PID" 2>/dev/null || true
   exit 1
 fi
 
