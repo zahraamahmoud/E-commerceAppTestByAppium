@@ -45,7 +45,7 @@ public class DriverManager {
     }
     public AndroidDriver appSetupRemotly(int PortNo) throws IOException, InterruptedException {
 
-        setDriver(initializeDriver(buildOptions(),PortNo));
+        setDriver(initializeDriver(buildRemoteOptions(),PortNo));
         return getDriver();
     }
 
@@ -74,7 +74,31 @@ public class DriverManager {
         }
     }
 
+    UiAutomator2Options buildRemoteOptions(){
+        UiAutomator2Options   options = new UiAutomator2Options();
+        //   WebDriverManager.chromedriver().setup();
+        // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
+        //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
+        //options.setCapability("chromedriverAutodownload", true);
+        // options.setApp(appPath);
+        options.setNewCommandTimeout(Duration.ofSeconds(600));
+        options.setAdbExecTimeout(Duration.ofMillis(300000));
+        options.setAndroidInstallTimeout(Duration.ofMillis(300000));
+        options.setUiautomator2ServerInstallTimeout(Duration.ofMillis(300000));
+        options.setUiautomator2ServerLaunchTimeout(Duration.ofMillis(300000));
+        options.setUiautomator2ServerReadTimeout(Duration.ofMillis(300000));
 
+        // Stability options
+        options.setIgnoreHiddenApiPolicyError(true);
+        options.setDisableWindowAnimation(true);
+        options.setSkipServerInstallation(false);
+        options.setSkipDeviceInitialization(false);
+        options.setAppPackage("com.androidsample.generalstore");
+        options.setAppActivity("com.androidsample.generalstore.MainActivity");
+        // options.chromedriverUseSystemExecutable();
+
+        return options;
+    }
 
      UiAutomator2Options buildOptions(){
         UiAutomator2Options   options = new UiAutomator2Options();
@@ -82,19 +106,8 @@ public class DriverManager {
        // String chromedriverPath = "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
         //     options.setChromedriverExecutable(chromedriverPath); // Set custom Chromedriver path
         //options.setCapability("chromedriverAutodownload", true);
-        // options.setApp(appPath);
-         options.setNewCommandTimeout(Duration.ofSeconds(600));
-         options.setAdbExecTimeout(Duration.ofMillis(300000));
-         options.setAndroidInstallTimeout(Duration.ofMillis(300000));
-         options.setUiautomator2ServerInstallTimeout(Duration.ofMillis(300000));
-         options.setUiautomator2ServerLaunchTimeout(Duration.ofMillis(300000));
-         options.setUiautomator2ServerReadTimeout(Duration.ofMillis(300000));
-
-        // Stability options
-         options.setIgnoreHiddenApiPolicyError(true);
+          options.setApp(appPath);
          options.setDisableWindowAnimation(true);
-         options.setSkipServerInstallation(false);
-         options.setSkipDeviceInitialization(false);
          options.setAppPackage("com.androidsample.generalstore");
          options.setAppActivity("com.androidsample.generalstore.MainActivity");
         // options.chromedriverUseSystemExecutable();

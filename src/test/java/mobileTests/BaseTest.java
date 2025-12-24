@@ -21,7 +21,7 @@ public class BaseTest {
     DriverManager driverManager;
     String emuName="P7";
     int portNo=4723;
-    private String runMode = System.getProperty("RUN_MODE", "local");
+    public String runMode = System.getProperty("RUN_MODE", "local");
 
     @BeforeClass
     public void setup() throws IOException, InterruptedException {
