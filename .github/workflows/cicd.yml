@@ -88,7 +88,10 @@ jobs:
     name: Generate and deploy Allure Report
     needs: [ run-android-tests-remote]
     runs-on: ubuntu-latest
-
+    permissions:
+     contents: write
+     pages: write
+     statuses: write
     steps:
       - name: Checkout reports branch
         uses: actions/checkout@v4
