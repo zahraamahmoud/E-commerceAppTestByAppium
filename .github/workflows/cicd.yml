@@ -66,7 +66,8 @@ jobs:
             chmod +x ./ci/uploadAPK.sh
             ./ci/uploadAPK.sh
 
-            mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml || true
+            mvn test -Dsurefire.suiteXmlFiles=MobileAutomationSuite.xml \
+                     -Dallure.results.directory=allure-results|| true
 
             echo "Closing connection with emulator-5554"
             adb -s emulator-5554 emu kill || true
