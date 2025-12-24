@@ -13,7 +13,7 @@ env:
   ANDROID_ARCH: x86_64
 
   ARTIFACT_NAME_REMOTE: allure-results-android-remote
-  GH_PAGES_URL: https://github.com/zahraamahmoud/E-commerceAppTestByAppium.git
+  GH_PAGES_URL: https://github.com/zahraamahmoud/E-commerceAppTestByAppium
 
 defaults:
   run:
@@ -117,11 +117,11 @@ jobs:
 
       - name: Deploy to GitHub reports
         if: always()
-        uses: peaceiris/actions-reports@v3
-        env:
+        uses: peaceiris/actions-gh-pages@v3
+        with:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISH_BRANCH: reports
-          PUBLISH_DIR: allure-history/${{ github.run_number }}
+          PUBLISH_DIR: allure-history
 
       - name: Post reports link
         if: always()
