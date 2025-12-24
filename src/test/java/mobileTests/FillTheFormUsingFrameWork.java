@@ -29,7 +29,7 @@ public class FillTheFormUsingFrameWork extends BaseTest {
         formPage.setName(name);
         assertEquals(formPage.getName(),name);
 
-        assertEquals(formPage.selectGender(gender),"true");
+        assertEquals(formPage.selectGender(gender),"false");
         formPage.submitForm();
 
     }
