@@ -8,6 +8,31 @@
     <test name="Mobile Tests">
         <classes>
             <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+
         </classes>
     </test>
 
