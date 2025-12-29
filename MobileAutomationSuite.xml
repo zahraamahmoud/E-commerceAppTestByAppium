@@ -8,32 +8,19 @@
     <test name="Mobile Tests">
         <classes>
             <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-            <class name="mobileTests.FillTheFormUsingFrameWork" />
-
         </classes>
     </test>
-
+    <test name="Mobile Tests1">
+        <classes>
+            <class name="mobileTests.FillTheFormUsingFrameWork" />
+        </classes>
+    </test>    <test name="Mobile Tests2">
+    <classes>
+        <class name="mobileTests.FillTheFormUsingFrameWork" />
+    </classes>
+</test>    <test name="Mobile Tests3">
+    <classes>
+        <class name="mobileTests.FillTheFormUsingFrameWork" />
+    </classes>
+</test>
 </suite>
