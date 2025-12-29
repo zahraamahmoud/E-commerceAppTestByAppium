@@ -22,7 +22,7 @@ public class BaseTest {
     int portNo=4723;
     public String runMode = System.getProperty("RUN_MODE", "local");
 
-    @BeforeSuite
+    @BeforeMethod
     public void setup() throws IOException, InterruptedException {
         driverManager = new DriverManager();
 
@@ -36,7 +36,7 @@ public class BaseTest {
         explicitWait = new WebDriverWait(driver, Duration.ofSeconds(4));
     }
 
-   @AfterSuite
+   @AfterMethod
     public void tearDown() throws  IOException {
        if (runMode.equalsIgnoreCase("remote")) {
               driverManager.appTearDownRemotly();
