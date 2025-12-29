@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","52958","fillTheFormTest","Mobile Automation Suite","Mon Dec 29 14:22:24 UTC 2025","failed","Mon Dec 29 14:23:17 UTC 2025","mobileTests.FillTheFormUsingFrameWork","Mobile Tests","mobileTests.FillTheFormUsingFrameWork","fillTheFormTest"
