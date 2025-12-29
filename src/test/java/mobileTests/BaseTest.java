@@ -7,8 +7,7 @@ import org.openqa.selenium.DeviceRotation;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.*;
 import mobile.utils.DriverManager;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class BaseTest {
     int portNo=4723;
     public String runMode = System.getProperty("RUN_MODE", "local");
 
-    @BeforeClass
+    @BeforeSuite
     public void setup() throws IOException, InterruptedException {
         driverManager = new DriverManager();
 
@@ -37,7 +36,7 @@ public class BaseTest {
         explicitWait = new WebDriverWait(driver, Duration.ofSeconds(4));
     }
 
-   @AfterClass
+   @AfterSuite
     public void tearDown() throws  IOException {
        if (runMode.equalsIgnoreCase("remote")) {
               driverManager.appTearDownRemotly();
